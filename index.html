@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ruta de Cafés y Panaderías - Viña del Mar</title>
+    <title>Expedición N°1 - Viña del Mar</title>
     
     <link href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
@@ -61,31 +61,60 @@
             attributionControl: false
         });
 
-        // 🔥 REEMPLAZA ESTE ENLACE POR EL QUE COPIASTE DE TU GOOGLE SHEETS
         const urlGoogleSheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbQEnC3_gekcWplNN2K5w-gtLJVjJxFvnHyoA5JWhO2rDz6fVptdewIbbP3G6xaDjphai1vD8mpvQr/pub?output=csv";
+
+        // Función de búsqueda flexible para encontrar la columna correcta
+        function obtenerValor(obj, palabrasClave) {
+            const keys = Object.keys(obj);
+            for (let key of keys) {
+                const keyClean = key.toLowerCase().trim();
+                for (let kw of palabrasClave) {
+                    if (keyClean.includes(kw)) {
+                        return obj[key];
+                    }
+                }
+            }
+            return "";
+        }
 
         Papa.parse(urlGoogleSheetCSV, {
             download: true,
             header: true,
+            skipEmptyLines: true,
             complete: function(results) {
                 const locales = results.data;
                 
                 locales.forEach(local => {
-                    if (!local.Latitud || !local.Longitud) return;
+                    const latRaw = obtenerValor(local, ["latitud", "lat"]);
+                    const lngRaw = obtenerValor(local, ["longitud", "lng", "lon"]);
+
+                    if (!latRaw || !lngRaw) return;
+
+                    const lat = parseFloat(latRaw.toString().replace(',', '.').trim());
+                    const lng = parseFloat(lngRaw.toString().replace(',', '.').trim());
+
+                    if (isNaN(lat) || isNaN(lng)) return;
 
                     const marker = new maplibregl.Marker({ color: "#D9534F" })
-                        .setLngLat([parseFloat(local.Longitud.replace(',', '.')), parseFloat(local.Latitud.replace(',', '.'))])
+                        .setLngLat([lng, lat])
                         .addTo(map);
 
                     marker.getElement().addEventListener('click', (e) => {
                         e.stopPropagation();
                         
-                        document.getElementById('local-nombre').innerText = local.Nombre || 'Sin nombre';
-                        document.getElementById('local-direccion').innerText = '📍 ' + (local.Direccion || '');
-                        document.getElementById('local-horario').innerText = '🕒 ' + (local.Horario || '');
+                        const nombre = obtenerValor(local, ["nombre", "local"]) || 'Sin nombre';
+                        const direccion = obtenerValor(local, ["direcci", "ubicaci"]) || '';
+                        const horario = obtenerValor(local, ["horario"]) || '';
+                        const rawBebestibles = obtenerValor(local, ["bebestible", "bebida"]);
+                        const rawComidas = obtenerValor(local, ["comida", "alimento"]);
+                        const rawInstagram = obtenerValor(local, ["instagram", "ig"]);
+
+                        document.getElementById('local-nombre').innerText = nombre;
+                        document.getElementById('local-direccion').innerText = '📍 ' + direccion;
+                        document.getElementById('local-horario').innerText = '🕒 ' + horario;
                         
-                        const bebestibles = local.Bebestibles ? local.Bebestibles.split(';').map(item => item.trim()).filter(item => item !== "") : [];
-                        const comidas = local.Comidas ? local.Comidas.split(';').map(item => item.trim()).filter(item => item !== "") : [];
+                        const bebestibles = rawBebestibles ? rawBebestibles.split(';').map(item => item.trim()).filter(item => item !== "") : [];
+                        const comidas = rawComidas ? rawComidas.split(';').map(item => item.trim()).filter(item => item !== "") : [];
                         
                         let htmlPromos = '';
                         if (bebestibles.length > 0) {
@@ -108,8 +137,8 @@
                         }
                         
                         const igLink = document.getElementById('local-instagram');
-                        if (local.Instagram && local.Instagram.trim() !== "") {
-                            let usuarioLimpio = local.Instagram.replace('@', '').trim();
+                        if (rawInstagram && rawInstagram.trim() !== "") {
+                            let usuarioLimpio = rawInstagram.replace('@', '').trim();
                             igLink.href = 'https://instagram.com/' + usuarioLimpio;
                             igLink.innerText = '📷 @' + usuarioLimpio;
                             igLink.style.display = 'inline-block';
@@ -117,11 +146,11 @@
                             igLink.style.display = 'none';
                         }
                         
-                        const urlMaps = `https://www.google.com/maps/dir/?api=1&destination=${local.Latitud},${local.Longitud}`;
+                        const urlMaps = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
                         document.getElementById('local-ruta').href = urlMaps;
                         
                         document.getElementById('ficha-local').style.display = 'block';
-                        map.flyTo({ center: [parseFloat(local.Longitud.replace(',', '.')), parseFloat(local.Latitud.replace(',', '.'))], zoom: 15 });
+                        map.flyTo({ center: [lng, lat], zoom: 15 });
                     });
                 });
             }
