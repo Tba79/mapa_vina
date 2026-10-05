@@ -3,39 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Expedición N°1 - Viña del Mar</title>
+    <title>Expedición N°01 - Viña del Mar</title>
     
+    <!-- Librerías externas -->
     <link href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <style>
-        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f4;}
+        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #faf7f2; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
+        /* Estilo de la tarjeta alineado al flyer */
         .info-card {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: white; padding: 20px; border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: none; 
+            background: #ffffff; padding: 22px; border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; 
             width: 85%; max-width: 350px; z-index: 10; max-height: 80vh; overflow-y: auto;
+            border-top: 5px solid #d56241;
         }
 
-        .info-card h3 { margin: 0 0 10px 0; color: #222; font-size: 22px; font-weight: bold; }
-        .info-card p { margin: 5px 0; font-size: 14px; color: #555; }
-        
-        .promo-box { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 15px; margin: 15px 0; }
-        .promo-box h4 { margin: 0 0 8px 0; font-size: 13px; text-transform: uppercase; color: #D9534F; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+        .info-card h3 { 
+            margin: 0 0 12px 0; 
+            color: #1a1a1a; 
+            font-size: 22px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
 
-        .promo-list { margin: 0 0 12px 0; padding-left: 0; list-style-type: none; font-size: 14px; color: #333; }
-        .promo-list li { margin-bottom: 6px; padding-left: 24px; position: relative; }
-        .promo-list li::before { position: absolute; left: 0; }
-        .list-bebida li::before { content: "☕"; }
-        .list-comida li::before { content: "🥐"; }
+        .info-card p { margin: 6px 0; font-size: 14px; color: #444; line-height: 1.4; }
+        .horario-texto { white-space: pre-line; color: #555; font-size: 13.5px; }
+        
+        /* Caja de promociones */
+        .promo-box { 
+            background-color: #fcf9f5; 
+            border: 1px solid #f0e6da; 
+            border-radius: 12px; 
+            padding: 14px; 
+            margin: 15px 0; 
+        }
+
+        .promo-box h4 { 
+            margin: 0 0 8px 0; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.8px;
+            color: #d56241; 
+            font-weight: 700;
+            border-bottom: 1px solid #eadcd0; 
+            padding-bottom: 4px; 
+        }
+
+        /* Listas limpias con viñeta de punto */
+        .promo-list { 
+            margin: 0 0 12px 0; 
+            padding-left: 18px; 
+            font-size: 14px; 
+            color: #333; 
+        }
+        .promo-list li { margin-bottom: 4px; }
         .promo-list:last-child { margin-bottom: 0; }
 
-        .link-ig { display: inline-block; margin-bottom: 15px; color: #E1306C; text-decoration: none; font-weight: bold; font-size: 14px; }
-        .btn-ruta { display: block; width: 100%; padding: 12px 0; background-color: #222; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
-        .btn-cerrar { position: absolute; top: 15px; right: 15px; background: #eee; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 14px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; }
+        /* Enlaces e Instagram */
+        .link-ig { 
+            display: inline-block; 
+            margin-bottom: 15px; 
+            color: #d56241; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 14px; 
+        }
+
+        .btn-ruta { 
+            display: block; 
+            width: 100%; 
+            padding: 13px 0; 
+            background-color: #1a1a1a; 
+            color: #ffffff; 
+            text-align: center; 
+            text-decoration: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 15px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-cerrar { 
+            position: absolute; top: 15px; right: 15px; 
+            background: #f0f0f0; border: none; border-radius: 50%; 
+            width: 28px; height: 28px; font-size: 13px; 
+            cursor: pointer; color: #666; 
+            display: flex; align-items: center; justify-content: center; 
+        }
     </style>
 </head>
 <body>
@@ -46,10 +106,10 @@
         <button class="btn-cerrar" onclick="cerrarFicha()">✖</button>
         <h3 id="local-nombre">Nombre</h3>
         <p id="local-direccion">📍 Dirección</p>
-        <p id="local-horario">🕒 Horario</p>
+        <p id="local-horario" class="horario-texto">🕒 Horario</p>
         <div class="promo-box" id="local-promociones"></div>
         <a id="local-instagram" href="#" target="_blank" class="link-ig">📷 @instagram</a>
-        <a id="local-ruta" href="#" target="_blank" class="btn-ruta">🚶‍♂️ Ver ruta en mapa</a>
+        <a id="local-ruta" href="#" target="_blank" class="btn-ruta">Ver ruta en mapa</a>
     </div>
 
     <script>
@@ -63,7 +123,6 @@
 
         const urlGoogleSheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbQEnC3_gekcWplNN2K5w-gtLJVjJxFvnHyoA5JWhO2rDz6fVptdewIbbP3G6xaDjphai1vD8mpvQr/pub?output=csv";
 
-        // Función de búsqueda flexible para encontrar la columna correcta
         function obtenerValor(obj, palabrasClave) {
             const keys = Object.keys(obj);
             for (let key of keys) {
@@ -75,6 +134,15 @@
                 }
             }
             return "";
+        }
+
+        // Función para dar formato vertical a los horarios
+        function formatearHorario(texto) {
+            if (!texto) return '';
+            // Si el texto incluye la palabra SABADO / SÁBADO o un punto y coma, lo divide en dos líneas
+            let formateado = texto.replace(/(SÁBADO|SABADO|Sabado|Sáb)/g, '\nSÁBADO');
+            formateado = formateado.replace(/;/g, '\n');
+            return '🕒 ' + formateado.trim();
         }
 
         Papa.parse(urlGoogleSheetCSV, {
@@ -95,7 +163,8 @@
 
                     if (isNaN(lat) || isNaN(lng)) return;
 
-                    const marker = new maplibregl.Marker({ color: "#D9534F" })
+                    // PIN PERSONALIZADO CON EL COLOR DEL FLYER (#d56241)
+                    const marker = new maplibregl.Marker({ color: "#d56241" })
                         .setLngLat([lng, lat])
                         .addTo(map);
 
@@ -111,19 +180,19 @@
 
                         document.getElementById('local-nombre').innerText = nombre;
                         document.getElementById('local-direccion').innerText = '📍 ' + direccion;
-                        document.getElementById('local-horario').innerText = '🕒 ' + horario;
+                        document.getElementById('local-horario').innerText = formatearHorario(horario);
                         
                         const bebestibles = rawBebestibles ? rawBebestibles.split(';').map(item => item.trim()).filter(item => item !== "") : [];
                         const comidas = rawComidas ? rawComidas.split(';').map(item => item.trim()).filter(item => item !== "") : [];
                         
                         let htmlPromos = '';
                         if (bebestibles.length > 0) {
-                            htmlPromos += '<h4>Bebestibles</h4><ul class="promo-list list-bebida">';
+                            htmlPromos += '<h4>Bebestibles</h4><ul class="promo-list">';
                             bebestibles.forEach(item => { htmlPromos += `<li>${item}</li>`; });
                             htmlPromos += '</ul>';
                         }
                         if (comidas.length > 0) {
-                            htmlPromos += '<h4>Comida</h4><ul class="promo-list list-comida">';
+                            htmlPromos += '<h4>Comidas</h4><ul class="promo-list">';
                             comidas.forEach(item => { htmlPromos += `<li>${item}</li>`; });
                             htmlPromos += '</ul>';
                         }
@@ -159,5 +228,7 @@
         function cerrarFicha() { document.getElementById('ficha-local').style.display = 'none'; }
         map.on('click', () => { cerrarFicha(); });
     </script>
+</body>
+</html>
 </body>
 </html>
