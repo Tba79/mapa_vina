@@ -14,6 +14,37 @@
         body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #faf7f2; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
+        /* Marcador personalizado con nombre */
+        .custom-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .marker-label {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+            border: 1px solid #e2d7cb;
+            white-space: nowrap;
+            margin-bottom: 4px;
+            pointer-events: auto;
+        }
+
+        .marker-pin {
+            width: 14px;
+            height: 14px;
+            background-color: #d56241;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
         /* Estilo de la tarjeta alineado al flyer */
         .info-card {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -35,7 +66,6 @@
         .info-card p { margin: 6px 0; font-size: 14px; color: #444; line-height: 1.4; }
         .horario-texto { white-space: pre-line; color: #555; font-size: 13.5px; }
         
-        /* Caja de promociones */
         .promo-box { 
             background-color: #fcf9f5; 
             border: 1px solid #f0e6da; 
@@ -55,7 +85,6 @@
             padding-bottom: 4px; 
         }
 
-        /* Listas limpias con viñeta de punto */
         .promo-list { 
             margin: 0 0 12px 0; 
             padding-left: 18px; 
@@ -65,7 +94,6 @@
         .promo-list li { margin-bottom: 4px; }
         .promo-list:last-child { margin-bottom: 0; }
 
-        /* Enlaces e Instagram */
         .link-ig { 
             display: inline-block; 
             margin-bottom: 15px; 
@@ -117,7 +145,7 @@
             container: 'map',
             style: 'https://tiles.openfreemap.org/styles/positron', 
             center: [-71.5518, -33.0245], 
-            zoom: 13,
+            zoom: 13.5,
             attributionControl: false
         });
 
@@ -136,10 +164,8 @@
             return "";
         }
 
-        // Función para dar formato vertical a los horarios
         function formatearHorario(texto) {
             if (!texto) return '';
-            // Si el texto incluye la palabra SABADO / SÁBADO o un punto y coma, lo divide en dos líneas
             let formateado = texto.replace(/(SÁBADO|SABADO|Sabado|Sáb)/g, '\nSÁBADO');
             formateado = formateado.replace(/;/g, '\n');
             return '🕒 ' + formateado.trim();
@@ -163,15 +189,23 @@
 
                     if (isNaN(lat) || isNaN(lng)) return;
 
-                    // PIN PERSONALIZADO CON EL COLOR DEL FLYER (#d56241)
-                    const marker = new maplibregl.Marker({ color: "#d56241" })
+                    const nombre = obtenerValor(local, ["nombre", "local"]) || 'Sin nombre';
+
+                    // CREAR ELEMENTO PERSONALIZADO (ETIQUETA + PUNTO)
+                    const el = document.createElement('div');
+                    el.className = 'custom-marker';
+                    el.innerHTML = `
+                        <div class="marker-label">${nombre}</div>
+                        <div class="marker-pin"></div>
+                    `;
+
+                    const marker = new maplibregl.Marker({ element: el })
                         .setLngLat([lng, lat])
                         .addTo(map);
 
-                    marker.getElement().addEventListener('click', (e) => {
+                    el.addEventListener('click', (e) => {
                         e.stopPropagation();
                         
-                        const nombre = obtenerValor(local, ["nombre", "local"]) || 'Sin nombre';
                         const direccion = obtenerValor(local, ["direcci", "ubicaci"]) || '';
                         const horario = obtenerValor(local, ["horario"]) || '';
                         const rawBebestibles = obtenerValor(local, ["bebestible", "bebida"]);
